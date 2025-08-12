@@ -1,5 +1,9 @@
-outputs/
-results/
+ecollava_train_videos/
+ecollava_val_videos/
 
-results_prune_chnl_20.0_LLaVA-NeXT-Video-7B-hf_sample_QLORA_4bit_r64_alpha128_6epochs.json
-results_prune_chnl_80.0_LLaVA-NeXT-Video-7B-hf_sample_QLORA_4bit_r64_alpha128_1epochs.json
+qwenvl/run_qwen_vl_no_sensors.py
+qwenvl/run_qwen_vl_with_sensors.py
+qwenvl/chatgpt_eval_data/
+qwenvl/chatgpt_train_data/
+qwenvl/gemini_eval_data/
+qwenvl/gemini_train_data/

@@ -12,25 +12,26 @@ from transformers import AutoProcessor, BitsAndBytesConfig, VideoLlavaForConditi
 
 import argparse
 # ================================================================================================
-MAX_LENGTH = 350
+MAX_LENGTH = 900
 MODEL_ID = "LanguageBind/Video-LLaVA-7B-hf"
 
 # # Configuration
-# USE_BASE = False
-
 DEVICE = int(os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")[0])
 print(DEVICE)
-
-test_annotations = './annotations/updated_val_annotations.json'
-test_directory = "/l/users/hosam.elgendy/updated_val_videos"
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--use_base", action="store_true", default=False)
 parser.add_argument("--model_path", type=str)
+parser.add_argument("--model", type=str)
 args = parser.parse_args()
 
-MODEL_TAG = args.model_path.split("/")[-1]
+if not args.use_base:
+    MODEL_TAG = args.model_path.split("/")[-1]
+
+test_annotations = f'./no_sensor_annotations/{args.model}_val_annotations.json'
+test_directory = "chatenv_val_videos"
+
 
 # ================================================================================================
 
@@ -165,6 +166,8 @@ else:
 
     # Load processor and model from local directory
     processor = AutoProcessor.from_pretrained(args.model_path)
+
+    processor.tokenizer.pad_token = processor.tokenizer.eos_token  # if pad token is not set
     processor.tokenizer.padding_side = "right"  # during training, one always uses padding on the right
 
     # Define quantization config
@@ -183,17 +186,35 @@ else:
     )
 
     results = []
-    pattern_to_remove = "\n ASSISTANT: Answer:"
     batch_size = 25  # Define your batch size here
 
     model.eval()
-
     # Check if file already exists
     file_path = f"results_{MODEL_TAG}.json"
     if not os.path.exists(file_path):
         # Create a new file with an opening array bracket if it doesn't exist
         with open(file_path, 'w') as f:
             f.write('[')
+        file_has_content = False
+    else:
+        # Check if file has content besides the opening bracket
+        file_size = os.path.getsize(file_path)
+        if file_size <= 1:  # Only has '[' or is empty
+            file_has_content = False
+        else:
+            # Check if file ends with ']' and remove it for appending
+            with open(file_path, 'rb+') as f:
+                f.seek(0, os.SEEK_END)
+                pos = f.tell() - 1
+                
+                f.seek(pos)
+                last_char = f.read(1).decode()
+                
+                if last_char == ']':
+                    # Remove the closing bracket
+                    f.seek(pos)
+                    f.truncate()
+            file_has_content = True
 
     with torch.no_grad():
         # Split test data into batches
@@ -201,42 +222,94 @@ else:
             start_idx = i * batch_size
             end_idx = min((i + 1) * batch_size, len(test_data))
             
-            # Collect texts and videos for the current batch
-            batch_texts = [test['conversations'][0]['value'] for test in test_data[start_idx:end_idx]]
-            batch_videos = [read_video_pyav(f'{test_directory}/{test["video"]}', 0, 1e+10) for test in test_data[start_idx:end_idx]]
+             # Collect texts and videos for the current batch
+            batch_texts = []
+            batch_videos = []
+            
+            for test in test_data[start_idx:end_idx]:
+                # Format the prompt exactly as in training
+                prompt = f"USER: {test['conversations'][0]['value']}\n ASSISTANT:"
+                batch_texts.append(prompt)
+                
+                try:
+                    video = read_video_pyav(f'{test_directory}/{test["video"]}', 0, 1e+10)
+                    batch_videos.append(video)
+                except Exception as e:
+                    print(f"Error reading video {test['video']}: {e}")
+                    # Use a placeholder empty video if needed
+                    batch_videos.append(np.zeros((2, 224, 224, 3), dtype=np.uint8))
             
             # Process the entire batch at once
-            inputs = processor(text=batch_texts, videos=batch_videos, return_tensors="pt", padding=True).to(model.device)
-            generated_ids = model.generate(**inputs, max_new_tokens=MAX_LENGTH)
-            generated_texts = processor.batch_decode(generated_ids, skip_special_tokens=True)
-            
-            # Clean the generated texts for the batch
-            cleaned_texts = [
-                generated_text.split(pattern_to_remove, 1)[-1].strip() if pattern_to_remove in generated_text else generated_text
-                for generated_text in generated_texts
-            ]
+            try:
+                inputs = processor(text=batch_texts, videos=batch_videos, return_tensors="pt", padding=True)
+                inputs = {k: v.to(model.device) for k, v in inputs.items()}
+                
+                generated_ids = model.generate(
+                    **inputs,
+                    max_new_tokens=MAX_LENGTH,
+                    do_sample=False,
+                    temperature=0.1,
+                    early_stopping=True,
+                    pad_token_id=processor.tokenizer.pad_token_id,
+                    eos_token_id=processor.tokenizer.eos_token_id,
+                )
+
+                if i == 0:  # Only for the first batch
+                    print("PAD:", processor.tokenizer.pad_token_id)
+                    print("EOS:", processor.tokenizer.eos_token_id)
+                
+                # Decode the generated text
+                generated_texts = processor.batch_decode(generated_ids, skip_special_tokens=True)
+                
+                # Extract just the model's answer part
+                processed_responses = []
+                for text in generated_texts:
+                    # First, try to find the assistant's response
+                    if "ASSISTANT:" in text:
+                        answer_part = text.split("ASSISTANT:")[-1].strip()
+                        if "Answer:" in answer_part:
+                            answer_part = answer_part.split("Answer:")[-1].strip()
+                        processed_responses.append(answer_part)
+                    else:
+                        processed_responses.append(text)
+                
+                # Debug: Print a sample of inputs and outputs
+                if i == 0:  # Only for the first batch
+                    for idx in range(min(3, len(batch_texts))):
+                        print(f"\nInput {idx}: {batch_texts[idx][:100]}...")
+                        print(f"Raw output {idx}: {generated_texts[idx][:100]}...")
+                        print(f"Processed output {idx}: {processed_responses[idx][:100]}...")
+                
+            except Exception as e:
+                print(f"Error in generation for batch {i+1}: {e}")
+                processed_responses = ["Error in generation"] * (end_idx - start_idx)
             
             # Append new results directly to the file
             with open(file_path, 'a') as f:
                 for idx, test in enumerate(test_data[start_idx:end_idx]):
                     true_value = test['conversations'][1]['value']
                     result_entry = {
-                        'id': test['id'],
+                        'id': test.get('id', f"test_{start_idx+idx}"),
                         'video': test['video'],
                         'true': true_value,
-                        'generated': cleaned_texts[idx]
+                        'generated': processed_responses[idx] if idx < len(processed_responses) else "Error"
                     }
                     
-                    # Add a comma before each entry except the first one to keep JSON valid
-                    if os.path.getsize(file_path) > 1:  # File is not empty
+                    # Add a comma before if there's already content in the file
+                    if file_has_content:
                         f.write(',\n')
+                    else:
+                        # First entry doesn't need a comma, but subsequent ones will
+                        file_has_content = True
+                        f.write('\n')
                     
                     # Write the result entry
                     json.dump(result_entry, f)
-        
-        # Close the JSON array if it's the last batch
-        if i == math.ceil(len(test_data) / batch_size) - 1:
-            with open(file_path, 'a') as f:
-                f.write('\n]')  # Close the JSON array
+            
+            # Close the JSON array if it's the last batch
+            if i == math.ceil(len(test_data) / batch_size) - 1:
+                with open(file_path, 'a') as f:
+                    f.write('\n]')  # Close the JSON array
 
+    print("Evaluation completed!")
     print("--- %s seconds ---" % (time.time() - start_time))

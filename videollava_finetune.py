@@ -26,33 +26,16 @@ import os
 import argparse
 
 
-MAX_LENGTH = 350
+
+MAX_LENGTH = 900
 MODEL_ID = "LanguageBind/Video-LLaVA-7B-hf"
 MODEL_NAME = MODEL_ID.split("/")[-1]
 
 #======================================================================================================
 
-# USE_LORA = False
-# USE_QLORA = True   # <-- QLORA takes priority over LORA, change to False before changing LORA to true
-# USE_8BIT = False  #Change to use 8bit configuration with qlora, otherwise, default is 4bit
-
-# PRUNE = True #Change this to use pruning
-# MAGNITUDE, ATTENTION, CHANNEL = True, False, False #Choose the type of pruning, leave only one True.
-
-# prune_amount = 0.05 #pruning percentage (5% here)
-
 DEVICE = int(os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")[0])
 print(DEVICE)
 
-# #the MODEL_TYPE is used in naming the checkpoint/output model for easier reference
-# # MODEL_TYPE = "sample" #for 10k sample dataset
-# MODEL_TYPE = "full" #for the full 100k dataset
-
-# batch_size = 3
-
-# #lora parameters
-# lora_r = 64
-# lora_alpha = 128
 
 parser = argparse.ArgumentParser(description="Configure video processing with optional LoRA, QLoRA, 8-bit quantization, and pruning.")
 
@@ -60,15 +43,7 @@ parser = argparse.ArgumentParser(description="Configure video processing with op
 parser.add_argument("--use_lora", action="store_true", default=False, help="Enable LoRA")
 parser.add_argument("--use_qlora", action="store_true", default=True, help="Enable QLoRA (takes priority over LoRA)")
 parser.add_argument("--use_8bit", action="store_true", default=False, help="Use 8-bit configuration with QLoRA")
-
-# Pruning options
-parser.add_argument("--prune", action="store_true", default=True, help="Enable pruning")
-parser.add_argument("--magnitude", action="store_true", default=False, help="Enable magnitude pruning")
-parser.add_argument("--attention", action="store_true", default=False, help="Enable attention pruning")
-parser.add_argument("--channel", action="store_true", default=False, help="Enable channel pruning")
-
-# Pruning amount
-parser.add_argument("--prune_amount", type=float, default=0.05, help="Set the pruning percentage (default is 0.05)")
+parser.add_argument("--use_linear", action="store_true", default=False, help="Use Linear Probing")
 
 # Model type and batch size
 parser.add_argument("--model_type", type=str, default="full", help="Specify the model type (e.g., 'sample' or 'full')")
@@ -79,19 +54,20 @@ parser.add_argument("--epochs", type=int, default=1, help="Number of epochs for 
 parser.add_argument("--lora_r", type=int, default=64, help="LoRA rank parameter")
 parser.add_argument("--lora_alpha", type=int, default=128, help="LoRA alpha parameter")
 
+parser.add_argument("--model", type=str, default="chatgpt", help="Specify the model used (e.g., 'chatgpt' or 'gemini')")
+
 args = parser.parse_args()
 
 #===================================================================================================================================
 
+# Annotations and directories
 if args.model_type == "sample":
-    train_annotations = "./annotations/sample_annotations.json"
+    train_annotations = f"./no_sensor_annotations/sample_{args.model}_train_annotations.json"
 else:
-    train_annotations = "./annotations/updated_train_annotations.json"
-    
-test_annotations =  './annotations/updated_val_annotations.json' #only needed for evaluating the model during the val loop (one sample)
-
-train_directory = "/l/users/hosam.elgendy/updated_train_videos"
-test_directory = "/l/users/hosam.elgendy/updated_val_videos"
+    train_annotations = f"./no_sensor_annotations/{args.model}_train_annotations.json"
+test_annotations = f'./no_sensor_annotations/sample_{args.model}_val_annotations.json'  # Needed for validation loop
+train_directory = "chatenv_train_videos"
+test_directory = "chatenv_val_videos"
 
 ##For easier evaluation, copy the MODEL_PATH that gets printed here and input it as the MODEL_PATH in the other code file
 
@@ -279,112 +255,6 @@ else:
     )
 
 
-def get_num_parameters(model: torch.nn.Module, count_nonzero_only=False) -> int:
-    """
-    calculate the total number of parameters of model
-    :param count_nonzero_only: only count nonzero weights
-    """
-    num_counted_elements = 0
-    for param in model.parameters():
-        if count_nonzero_only:
-            num_counted_elements += param.count_nonzero()
-        else:
-            num_counted_elements += param.numel()
-    return num_counted_elements
-
-
-def get_model_size(model: torch.nn.Module, data_width=32, count_nonzero_only=False) -> int:
-    """
-    calculate the model size in bits
-    :param data_width: #bits per element
-    :param count_nonzero_only: only count nonzero weights
-    """
-    return get_num_parameters(model, count_nonzero_only) * data_width
-
-Byte = 8
-KiB = 1024 * Byte
-MiB = 1024 * KiB
-GiB = 1024 * MiB
-
-dense_model_size = get_model_size(model)
-print(f"BEFORE PRUNING dense model has size={dense_model_size/MiB:.2f} MiB")
-      
-
-if args.prune:
-
-    if args.magnitude:
-            # Apply magnitude-based pruning to selected layers
-        for name, module in model.named_modules():
-            if isinstance(module, torch.nn.Linear):  # Apply pruning to all Linear layers, adjust as needed
-                prune.l1_unstructured(module, name='weight', amount=args.prune_amount)  # Adjust the amount as per your requirements
-                prune.remove(module, 'weight')  # Remove the pruning mask after pruning
-
-    if args.attention:
-         # Apply structured pruning to attention heads
-        for name, module in model.named_modules():
-            # Identify attention modules for head pruning
-            if hasattr(module, 'num_heads') and hasattr(module, 'q_proj'):
-                # Calculate number of heads to prune based on pruning ratio
-                num_heads_to_prune = int(module.num_heads * args.prune_amount)
-                if num_heads_to_prune > 0:
-                    # print(f"Pruning {num_heads_to_prune} heads from {name}")
-
-                    # Example pruning strategy: remove heads with smallest weights
-                    # Reshape to separate heads
-                    q_proj_weights = module.q_proj.weight.view(module.num_heads, -1).clone()  # Detach copy for modification
-                    # Get indices of heads with the lowest L2-norm weight
-                    # head_norms = q_proj_weights.norm(dim=1)
-                    head_norms = q_proj_weights.float().norm(dim=1)
-
-                    heads_to_prune = torch.topk(head_norms, num_heads_to_prune, largest=False).indices
-
-                    # Zero out the weights of the selected heads
-                    for head in heads_to_prune:
-                        q_proj_weights[head] = 0
-
-                    # Assign pruned weights back to the q_proj layer
-                    module.q_proj.weight.data.copy_(q_proj_weights.view_as(module.q_proj.weight))
-                    
-                    # Optional: apply similar pruning to k_proj, v_proj if needed
-
-
-    if args.channel:
-        # Set pruning amounts
-        head_pruning_ratio = args.prune_amount  # Prune 20% of attention heads
-        channel_pruning_ratio = args.prune_amount  # Prune 20% of channels in convolutional layers
-
-        # Apply attention head pruning
-        for name, module in model.named_modules():
-            if hasattr(module, 'num_heads') and hasattr(module, 'q_proj'):
-                num_heads_to_prune = int(module.num_heads * head_pruning_ratio)
-                if num_heads_to_prune > 0:
-                    print(f"Pruning {num_heads_to_prune} heads from {name}")
-                    q_proj_weights = module.q_proj.weight.view(module.num_heads, -1).clone()
-                    # head_norms = q_proj_weights.norm(dim=1)
-                    head_norms = q_proj_weights.float().norm(dim=1)
-                    heads_to_prune = torch.topk(head_norms, num_heads_to_prune, largest=False).indices
-                    for head in heads_to_prune:
-                        q_proj_weights[head] = 0
-                    module.q_proj.weight.data.copy_(q_proj_weights.view_as(module.q_proj.weight))
-
-        # Apply channel pruning on convolutional layers
-        for name, module in model.named_modules():
-            if isinstance(module, torch.nn.Conv2d):
-                num_channels_to_prune = int(module.out_channels * channel_pruning_ratio)
-                if num_channels_to_prune > 0:
-                    print(f"Pruning {num_channels_to_prune} channels from {name}")
-                    channel_norms = module.weight.view(module.out_channels, -1).norm(dim=1)
-                    channels_to_prune = torch.topk(channel_norms, num_channels_to_prune, largest=False).indices
-                    
-                    # Set selected channel weights to zero (pruning)
-                    for channel in channels_to_prune:
-                        module.weight.data[channel] = 0
-                        if module.bias is not None:
-                            module.bias.data[channel] = 0  # Prune corresponding bias
-
-
-dense_model_size = get_model_size(model)
-print(f"AFTER PRUNING dense model has size={dense_model_size/MiB:.2f} MiB")
 
 def find_all_linear_names(model):
     cls = torch.nn.Linear
@@ -411,7 +281,17 @@ lora_config = LoraConfig(
 )
 
 model = prepare_model_for_kbit_training(model)
-model = get_peft_model(model, lora_config)
+
+if args.use_lora and not args.use_linear:
+    model = get_peft_model(model, lora_config)
+
+if args.use_linear:
+    for name, param in model.named_parameters():
+        if "lm_head" in name:
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
+
 
 class VideoLlavaModelPLModule(L.LightningModule):
     def __init__(self, config, processor, model):
@@ -489,22 +369,11 @@ model_module = VideoLlavaModelPLModule(config, processor, model)
 
 lora_type = "QLORA" if args.use_qlora else "LORA"
 bit_type = "8bit" if args.use_8bit else "4bit"
+probing = "linear_" if args.use_linear else ""
 
-prune_type = ""
-if args.prune:
-    if args.magnitude:
-        prune_type = "prune_mag_"
-    elif args.attention:
-        prune_type = "prune_attn_"
-    elif args.channel:
-        prune_type = "prune_chnl_"
-    else:
-        prune_type = "prune_"
+###fix how the path is without lora
 
-prune_perc = str(args.prune_amount*100) + "_" if args.prune else ""
-
-
-MODEL_PATH = f"./outputs/{prune_type}{prune_perc}{MODEL_NAME}_{args.model_type}_{lora_type}_{bit_type}_r{args.lora_r}_alpha{args.lora_alpha}_{args.epochs}epochs/"
+MODEL_PATH = f"./outputs/{probing}{args.model}_{MODEL_NAME}_{args.model_type}_{lora_type}_{bit_type}_r{args.lora_r}_alpha{args.lora_alpha}_{args.epochs}epochs_{MAX_LENGTH}tokens/"
 
 
 print(MODEL_PATH)
@@ -521,6 +390,8 @@ checkpoint_callback = ModelCheckpoint(
     filename="videollava-{epoch:02d}-{train_loss:.2f}"  # Checkpoint file naming convention
 )
 
+precision = "32-true" if args.use_qlora else "16-mixed"
+
 trainer = Trainer(
     default_root_dir=MODEL_PATH,
     accelerator="gpu",
@@ -529,7 +400,9 @@ trainer = Trainer(
     accumulate_grad_batches=config.get("accumulate_grad_batches"),
     check_val_every_n_epoch=config.get("check_val_every_n_epoch"),
     gradient_clip_val=config.get("gradient_clip_val"),
-    precision="16-mixed",
+    # precision="16-mixed",
+    precision=precision,
+    detect_anomaly=False,
     limit_val_batches=1,
     num_sanity_val_steps=1,
     callbacks=[checkpoint_callback],  # Add checkpoint callback here

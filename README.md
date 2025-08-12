@@ -1,6 +1,6 @@
-# GeoLLaVA: Efficient Fine-Tuned Vision-Language Models for Temporal Change Detection in Remote Sensing 🌍
+# ChatENV [Temporary Draft] 🌍
 
-GeoLLaVA is designed to enhance vision-language models (VLMs) for detecting temporal changes in remote sensing data. By leveraging fine-tuning techniques like LoRA and QLoRA, it significantly improves model performance in tasks such as environmental monitoring and urban planning, especially in detecting geographical landscape evolution over time.
+INTROOOOO
 
 #### [Hosam Elgendy](https://scholar.google.com/citations?user=6RA4_m8AAAAJ&hl=en&oi=ao), [Ahmed Sharshar](https://scholar.google.com/citations?user=GC8A9k0AAAAJ&hl=en), [Ahmed Aboeitta](https://scholar.google.com/citations?user=sEZTgaYAAAAJ&hl=en&oi=ao), [Yasser Ashraf](https://scholar.google.com/citations?user=Q_r99BgAAAAJ&hl=en&oi=ao) and [Mohsen Guizani](https://scholar.google.com/citations?user=RigrYkcAAAAJ&hl=en&oi=ao)
 #### Mohamed bin Zayed University of AI (MBZUAI)

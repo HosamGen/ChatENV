@@ -13,26 +13,24 @@ from transformers import BitsAndBytesConfig, LlavaNextVideoForConditionalGenerat
 import argparse
 # ================================================================================================
 
-MAX_LENGTH = 350
+MAX_LENGTH = 900 ##return to 500
 MODEL_ID = "llava-hf/LLaVA-NeXT-Video-7B-hf"
-
-# # Configuration
-# USE_BASE = False
 
 DEVICE = int(os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")[0])
 print(DEVICE)
 
-test_annotations = './annotations/updated_val_annotations.json'
-test_directory = "/l/users/hosam.elgendy/updated_val_videos"
-
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--use_base", action="store_true", default=False)
 parser.add_argument("--model_path", type=str)
+parser.add_argument("--model", type=str)
 args = parser.parse_args()
 
-MODEL_TAG = args.model_path.split("/")[-1]
+if not args.use_base:
+    MODEL_TAG = args.model_path.split("/")[-1]
 
+
+test_annotations = f'./no_sensor_annotations/{args.model}_val_annotations.json'
+test_directory = "chatenv_val_videos"
 # ================================================================================================
 
 def read_video_pyav(video_path, start, end):
@@ -138,7 +136,7 @@ if args.use_base:
     results = []
 
     # Open the file in append mode before the loop
-    with open(f'results_base_LLaVA-NeXT-Video.json', 'a') as f:
+    with open(f'{args.model}_results_base_LLaVA-NeXT-Video.json', 'a') as f:
         for test in test_data:
             true_value = test['conversations'][1]['value']
 
@@ -163,10 +161,11 @@ if args.use_base:
             }
 
             # Write each entry as a separate JSON object
-            f.write(json.dumps(result_entry) + '\n')
+            f.write(json.dumps(result_entry) + ',' + '\n')
 
 else:
     print("Using local model")
+
 
     # Load processor and model from local directory
     processor = LlavaNextVideoProcessor.from_pretrained(args.model_path)
