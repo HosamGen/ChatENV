@@ -19,8 +19,8 @@ from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
 
 import os
-os.environ["HF_TOKEN"] = "sloth"
-os.environ["HUGGINGFACE_HUB_TOKEN"] = "sloth"
+os.environ["HF_TOKEN"] = "HUGGING_FACE_TOKEN_NAME"
+os.environ["HUGGINGFACE_HUB_TOKEN"] = "HUGGING_FACE_TOKEN_NAME"
 
 # Set up command-line arguments
 parser = argparse.ArgumentParser(description='Fine-tune Qwen-VL model')
@@ -56,7 +56,7 @@ sensor_df_path = f"emissions_{args.model}.csv"
 # print("torch.cuda.is_available:", torch.cuda.is_available())
 
 # Configuration
-token = "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"  # Your Hugging Face token
+token = "hf_full_token"  # Your Hugging Face token
 linear = args.linear
 
 TEST = True
@@ -878,7 +878,7 @@ def main():
 
     
     # Initialize wandb
-    os.environ["WANDB_API_KEY"] = "2c9ed44fd70465765d75ace5ad6666515944345e"  # Replace with your actual API key
+    os.environ["WANDB_API_KEY"] = "WANDB_API_KEY"  # Replace with your actual API key
     wandb.init(
         project="qwen-12b", 
         name=f"{args.model}-{args.train_samples}_{'linear' if args.linear else 'lora'}_training"
