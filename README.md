@@ -82,18 +82,18 @@ ChatENV
 |    |   .....
 ├── llavanext_eval.py
 ├── llavanext_finetune.py
-├── qwen/
+├── qwenvl/
 ├── videollava_finetune.py
 ├── videollava_test.py
 ...
 ```
-The llavanext/videollava files are for the video based models, whereas `qwen/` contains the scripts for finetuing the qwen model.
+The llavanext/videollava files are for the video based models, whereas `qwenvl/` contains the scripts for finetuing the qwen model.
 
 The `qwen/` directory should look like:
 
 ```
 ChatENV
-├── qwen/
+├── qwenvl/
 |    ├──chatgpt_eval_data
 |    ├──chatgpt_train_data
 |    ├──gemini_train_data
@@ -107,23 +107,24 @@ ChatENV
 ```
 ## Training
 
-For the Qwen model finetuning, a single script `run_qwen_vl.py` does finetuning, zero-shot evaluation and fine-tuning evaluation. Simply use:
+For the Qwen model finetuning, a single script `run_qwen_vl.py` does finetuning, zero-shot evaluation and fine-tuning evaluation. Simply use the following example and change it with the following flags:
 
 ```shell
-python run_qwen_vl.py --XX --YY
+python run_qwen_vl.py --model gemini  --mode eval --run_finetune
 ```
+
+| Flag               | Description                                  | Possible Values / Type              |
+|--------------------|----------------------------------------------|--------------------------------------|
+| `--model`          | Selects the base model to use                | `gemini`, `chatgpt`, `merge`         |
+| `--linear`         | Enables linear probing instead of full fine-tuning | *(flag, no value needed)*            |
+| `--train_samples`  | Number of training samples to use            | Integer (e.g., `35000`)              |
+| `--eval_samples`   | Number of evaluation samples to use          | Integer (e.g., `2000`)               |
+| `--mode`           | Selects the run mode                         | `eval`, `whatif`                     |
+| `--run_zero_shot`  | Run zero-shot evaluation                     | *(flag, no value needed)*            |
+| `--run_finetune`   | Run fine-tuning and evaluation               | *(flag, no value needed)*            |
+
 
 As for the video models, run the `videollava_finetune.py` or `llavanext_finetune.py` scripts, change the flags based on your configuration.
-
-Flags:
-```shell
---lora
---qlora
---4bit
---model
---batch_size
-..
-```
 
 For Video-LLaVA:
 ```shell
@@ -135,93 +136,92 @@ For LLaVA-NeXT:
 python llavanext_finetune.py
 ```
 
-Modify parameters such as:
-```shell
-MAX_LENGTH = 256
-USE_LORA = False
-USE_QLORA = True 
-USE_8BIT = False 
-PRUNE = False 
-prune_amount = 0.05 
-MODEL_TYPE = "sample" #for 10k sample dataset
-# MODEL_TYPE = "full" #for the full 100k dataset
-batch_size = 2
+Flags:
 
-#lora parameters
-lora_r = 64
-lora_alpha = 128
-```
+| Flag             | Description                                                  | Possible Values / Type                               | Default   |
+|------------------|--------------------------------------------------------------|------------------------------------------------------|-----------|
+| `--use_lora`     | Enable LoRA                                                   | *(flag, no value needed)*                           | `False`   |
+| `--use_qlora`    | Enable QLoRA (takes priority over LoRA)                       | *(flag, no value needed)*                           | `True`    |
+| `--use_8bit`     | Use 8-bit configuration with QLoRA                            | *(flag, no value needed)*                           | `False`   |
+| `--use_linear`   | Use Linear Probing                                            | *(flag, no value needed)*                           | `False`   |
+| `--model_type`   | Specify the model type                                        | (`sample`, `full`)                                  | `full`    |
+| `--batch_size`   | Batch size for processing                                     | Integer                                             | `3`       |
+| `--epochs`       | Number of epochs for finetuning the model                     | Integer                                             | `1`       |
+| `--lora_r`       | LoRA rank parameter                                           | Integer                                             | `64`      |
+| `--lora_alpha`   | LoRA alpha parameter                                          | Integer                                             | `128`     |
+| `--model`        | Specify the model used                                        | `chatgpt`, `gemini`, `merge`                        | `chatgpt` |
+
 
 ## Evaluation
 
 For the Qwen model finetuning, the same script `run_qwen_vl.py` is used:
-Zero-Shot Evaluation only:
+Zero-Shot Evaluation:
 ```shell
-FLAAAAG```
-
-Finetuning Evaluation only:
-```shell
-FLAAAAG
+python run_qwen_vl.py --model gemini  --mode eval --run_zero_shot
 ```
 
-Comapring Zero-Shot vs Finetuning:
+Finetuning Evaluation:
 ```shell
-FLAAAAG
+python run_qwen_vl.py --model gemini  --mode eval --run_finetune
 ```
-
 
 To evaluate the fine-tuned models on the test dataset, use the following commands:
 
 For Video-LLaVA:
 ```shell
-python videollava_test.py
+python videollava_eval.py --model gemini --model_path [path to the finetuned model]
 ```
 
 For LLaVA-NeXT:
 ```shell
-python llavanext_eval.py
+python llavanext_eval.py --model gemini --model_path [path to the finetuned model]
 ```
 
 > [!IMPORTANT]
 > The MODEL_PATH must be changed during evaluation based on the model that was finetuned.
 
-These commands will run the evaluation on the specified test dataset and generate performance metrics, including ROUGE, BLEU, and BERT scores. The results will help assess the model's performance in detecting temporal changes in remote sensing data.
+
 
 ## Results
 
-We evaluated the performance of GeoLLaVA across various metrics, including ROUGE, BLEU, and BERT scores. The fine-tuned model demonstrated significant improvements in capturing and describing temporal changes in geographical landscapes.
+The previous scripts will run the evaluation on the specified test dataset and generate performance metrics, including ROUGE, , SBERT, COMET, and BERT scores. The results will help assess the model's performance in detecting temporal changes in remote sensing data. The fine-tuned model demonstrated significant improvements in capturing and describing temporal changes in geographical landscapes compared to the non-trained model. 
 
-To calculate the scores after evaluating the models, please check the steps in the [Results.ipynb](https://github.com/HosamGen/GeoLLaVA/blob/main/Results.ipynb) notebook.
+To calculate the scores (for Video-LLaVA and LLaVA-NeXT-Video models) after evaluating, please use the [eval_updated.py](https://github.com/HosamGen/ChatENV/blob/main/eval_updated.py) script to get the scores. The Qwen VL model script does this step internally. 
+Additional score introduced in this paper is the Keyword Cluster Evaluation (KCE) metric, which is done through the [keyword_eval.py](https://github.com/HosamGen/ChatENV/blob/main/keyword_eval.py) python script.
 
-## Video-LLaVA Results
+## ChatENV Three Turn Setting Results
 
-| Model                | ROUGE-1 | ROUGE-2 | ROUGE-L | BLEU  | BERT  |
-|----------------------|---------|---------|---------|-------|-------|
-| **Base**             | 0.211   | 0.041   | 0.122   | 0.039 | 0.456 |
-| **10K LoRA**         | 0.563   | 0.214   | 0.313   | 0.243 | 0.849 |
-| **100K LoRA**        | **0.576**   | **0.226**   | **0.325**   | **0.250** | **0.863** |
-| **10K QLoRA**        | 0.565   | 0.212   | 0.310   | 0.243 | 0.845 |
-| **100K QLoRA**       | 0.571   | 0.220   | 0.316   | **0.250** | 0.854 |
-| **10K Pruning 5%**   | 0.031   | 0.007   | 0.024   | 0.010 | 0.265 |
-| **100K Pruning 5%**  | 0.125   | 0.034   | 0.110   | 0.043 | 0.359 |
-
-## LLaVA-NeXT Results
-
-| Model                | ROUGE-1 | ROUGE-2 | ROUGE-L | BLEU  | BERT  |
-|----------------------|---------|---------|---------|-------|-------|
-| **Base**             | 0.197   | 0.037   | 0.113   | 0.042 | 0.404 |
-| **10K LoRA**         | 0.554   | 0.198   | 0.300   | 0.232 | 0.856 |
-| **100K LoRA**        | **0.562**   | 0.199   | 0.300   | **0.239** | **0.864** |
-| **10K QLoRA**        | 0.543   | 0.193   | 0.283   | 0.213 | 0.836 |
-| **100K QLoRA**       | 0.561   | **0.202**   | **0.302**   | 0.229 | 0.858 |
-| **10K Pruning 5%**   | 0.532   | 0.178   | 0.278   | 0.209 | 0.829 |
-| **100K Pruning 5%**  | 0.541   | 0.183   | 0.284   | 0.210 | 0.840 |
-
-**Final Model (100K LoRA)** | **0.556** | **0.202** | **0.290** | **0.227** | **0.850** |
+| Annotations          | Training   | ROUGE-L   | SBERT     | BERT-F1   | COMET     | KCE-F1    |
+| -------------------- | ---------- | --------- | --------- | --------- | --------- | --------- |
+| **ChatGPT**          | Base       | 0.124     | 0.430     | 0.824     | 0.496     | 0.710     |
+|                      | LoRA       | 0.242     | 0.702     | 0.889     | 0.733     | 0.818     |
+|                      | Lin. PROBE | 0.233     | 0.648     | 0.884     | 0.699     | 0.817     |
+| **Gemini**           | Base       | 0.122     | 0.450     | 0.825     | 0.490     | 0.692     |
+|                      | LoRA       | 🔸0.298🔸 | 🔸0.803🔸 | 🔸0.902🔸 | 🔸0.763🔸 | 0.826     |
+|                      | Lin. PROBE | 0.289     | 0.794     | 0.899     | 0.752     | 🔸0.830🔸 |
+| **ChatGPT + Gemini** | Base       | 0.124     | 0.445     | 0.825     | 0.495     | 0.705     |
+|                      | LoRA       | 0.250     | 0.737     | 0.890     | 0.745     | 0.814     |
+|                      | Lin. PROBE | 0.236     | 0.706     | 0.883     | 0.713     | 0.809     |
 
 
+## ChatENV Two Turn Setting (What-If) Results
 
-These metrics illustrate how well the models performed in describing temporal changes in remote sensing data, with fine-tuning techniques like LoRA and QLoRA leading to notable improvements.
+| Annotations          | Training   | ROUGE-L   | SBERT     | BERT-F1   | COMET     | KCE-F1    |
+| -------------------- | ---------- | --------- | --------- | --------- | --------- | --------- |
+| **ChatGPT**          | Base       | 0.108     | 0.607 | 0.840     | 0.627     | 0.587     |
+|                      | LoRA       | 0.231     | 0.597     | 0.893 | 0.686 | 0.800     |
+|                      | Lin. PROBE | 0.233 | 0.596     | 0.889     | 0.684     | 0.813 |
+| **Gemini**           | Base       | 0.115     | 0.597     | 0.837     | 0.626     | 0.569     |
+|                      | LoRA       | 🔸0.282🔸 | 🔸0.667🔸 | 🔸0.900🔸 | 🔸0.705🔸 | 🔸0.816🔸 |
+|                      | Lin. PROBE | 0.247     | 0.647     | 0.889     | 0.702     | 0.759     |
+| **ChatGPT + Gemini** | Base       | 0.111     | 0.603     | 0.838     | 0.628     | 0.576     |
+|                      | LoRA       | 0.254     | 0.646     | 0.895     | 0.695     | 0.809     |
+|                      | Lin. PROBE | 0.234     | 0.629     | 0.886     | 0.666     | 0.785     |
+
+
+
+
+These metrics illustrate how well the models performed in describing temporal changes in remote sensing data, with fine-tuning techniques like LoRA based on the different conversation settings.
 
 ## Acknowledgement
 + [Qwen-2.5VL](https://github.com/QwenLM/Qwen2.5-VL) Original repo for the Qwen2.5-VL model.
