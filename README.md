@@ -3,7 +3,7 @@
 This is the code base for the ChatENV project. It includes finetuning the Qwen 2.5 VL model to describe images, and comment on changes between image pairs, in addition to asking hypothetical "what-if" questions regarding weather information and sensor data. Additionally, the repo includes steps to finetune video-based llava models for better temporal analysis, using Video-LLaVA and LLaVA-NeXT-Video.
 
 #### [Hosam Elgendy](https://scholar.google.com/citations?user=6RA4_m8AAAAJ&hl=en&oi=ao), [Ahmed Sharshar](https://scholar.google.com/citations?user=GC8A9k0AAAAJ&hl=en), [Ahmed Aboeitta](https://scholar.google.com/citations?user=sEZTgaYAAAAJ&hl=en&oi=ao) and [Mohsen Guizani](https://scholar.google.com/citations?user=RigrYkcAAAAJ&hl=en&oi=ao)
-#### Mohamed bin Zayed University of AI (MBZUAI)
+#### Mohamed bin Zayed University of Artificial Intelligence (MBZUAI)
 
 ---
 <p align='center'>
@@ -19,7 +19,8 @@ This is the code base for the ChatENV project. It includes finetuning the Qwen 2
 - [Training](#training)
 - [Evaluation](#evaluation)
 - [Results](#results)
-- [Acknowledgments](#acknowledgments)
+- [Acknowledgements](#acknowledgements)
+- [Citation](#citation)
 
 ---
 
@@ -189,7 +190,7 @@ The previous scripts will run the evaluation on the specified test dataset and g
 To calculate the scores (for Video-LLaVA and LLaVA-NeXT-Video models) after evaluating, please use the [eval_updated.py](https://github.com/HosamGen/ChatENV/blob/main/eval_updated.py) script to get the scores. The Qwen VL model script does this step internally. 
 Additional score introduced in this paper is the Keyword Cluster Evaluation (KCE) metric, which is done through the [keyword_eval.py](https://github.com/HosamGen/ChatENV/blob/main/keyword_eval.py) python script.
 
-## ChatENV Three Turn Setting Results
+### ChatENV Three Turn Setting Results
 
 | Annotations          | Training   | ROUGE-L   | SBERT     | BERT-F1   | COMET     | KCE-F1    |
 | -------------------- | ---------- | --------- | --------- | --------- | --------- | --------- |
@@ -204,7 +205,7 @@ Additional score introduced in this paper is the Keyword Cluster Evaluation (KCE
 |                      | Lin. PROBE | 0.236     | 0.706     | 0.883     | 0.713     | 0.809     |
 
 
-## ChatENV Two Turn Setting (What-If) Results
+### ChatENV Two Turn Setting (What-If) Results
 
 | Annotations          | Training   | ROUGE-L   | SBERT     | BERT-F1   | COMET     | KCE-F1    |
 | -------------------- | ---------- | --------- | --------- | --------- | --------- | --------- |
@@ -223,7 +224,7 @@ Additional score introduced in this paper is the Keyword Cluster Evaluation (KCE
 
 These metrics illustrate how well the models performed in describing temporal changes in remote sensing data, with fine-tuning techniques like LoRA based on the different conversation settings.
 
-## Acknowledgement
+## Acknowledgements
 + [Qwen-2.5VL](https://github.com/QwenLM/Qwen2.5-VL) Original repo for the Qwen2.5-VL model.
 + [Video-LLaVA](https://github.com/PKU-YuanGroup/Video-LLaVA/) Video-LLaVA: Learning United Visual Representation by Alignment Before Projection. We have used Video-LLaVA as one of the models for finetuning.
 + [LLaVA-NeXT](https://github.com/LLaVA-VL/LLaVA-NeXT) LLaVA-NeXT: Open Large Multimodal Models. The video model was used as the second model.
