@@ -44,21 +44,19 @@ This is the code base for the ChatENV project. It includes finetuning the Qwen 2
    ```shell
     conda create -n videollava python=3.10
     conda activate videollava
-    pip install -r llava_requirements.txt
+    pip install -r videollava_requirements.txt
     ```
 
 ---
 ## Dataset
 ### ChatENV Custom Dataset
 
-1. fMoW Images:
-
-Please refer to the [fMoW dataset](https://github.com/fMoW/dataset?tab=readme-ov-file) for the original remote sensing dataset. Image files are needed for the ChatENV (Qwen based) model finetuning. We provide the cleaned annotations/QAs in the [Annotations]() section below.
+1. fMoW Images: Please refer to the [fMoW dataset](https://github.com/fMoW/dataset?tab=readme-ov-file) for the original remote sensing dataset. Image files are needed for the ChatENV (Qwen based) model finetuning. We provide the cleaned annotations/QAs in the following steps.
 
 2. Dataset for finetuning the Qwen model in the Three-Turn Setting, Sheet with Questions and Answers for the What-If finetuning, and Sheets with emissions data can be downloaded from: [ChatENV](https://mbzuaiac-my.sharepoint.com/:f:/g/personal/hosam_elgendy_mbzuai_ac_ae/ElUQBEmS821KsHf9WkisV4wBYNWru3K-gb2Lp7XNYsBrXQ?e=xVA7NS).
 
-3. [OPTIONAL] For the video models, the annotationsare too large, and can be downloaded via [Videollava-Annotations](https://mbzuaiac-my.sharepoint.com/:f:/g/personal/hosam_elgendy_mbzuai_ac_ae/ErvrSn_bdfJOkr8VOoF2oaIBRRmDECYP6_SFnBS_NAR6dw?e=RpEijA).
-4. [OPTIONAL] For the video models, the videos of combined images can be downloaded as a zip file through: [Videollava-Videos](https://mbzuaiac-my.sharepoint.com/:u:/g/personal/hosam_elgendy_mbzuai_ac_ae/EcRuKZwN2y5AlNU3PTc36goBNfhlOdxtcWcZ35ZhiYFDXA?e=OIL0S2). These videos can be unzipped as follows:
+3. [OPTIONAL] For the video models, the annotations are too large, and can be downloaded via [Videollava-Annotations](https://mbzuaiac-my.sharepoint.com/:f:/g/personal/hosam_elgendy_mbzuai_ac_ae/ErvrSn_bdfJOkr8VOoF2oaIBRRmDECYP6_SFnBS_NAR6dw?e=RpEijA).
+4. [OPTIONAL] For the video models, the videos of combined images can be downloaded as a zip file through: [Videollava-Videos](https://mbzuaiac-my.sharepoint.com/:u:/g/personal/hosam_elgendy_mbzuai_ac_ae/EcRuKZwN2y5AlNU3PTc36goBNfhlOdxtcWcZ35ZhiYFDXA?e=OIL0S2). These videos can be unzipped to two directories as follows:
 
 ```shell
 unzip chatenv_videos.zip
@@ -79,7 +77,7 @@ ChatENV
 |    ├── xxx.mp4
 |    |   .....
 ├── chatenv_val_videos/
-|    ├── xx.mp4
+|    ├── xxx.mp4
 |    |   .....
 ├── llavanext_eval.py
 ├── llavanext_finetune.py
@@ -90,7 +88,7 @@ ChatENV
 ```
 The llavanext/videollava files are for the video based models, whereas `qwenvl/` contains the scripts for finetuing the qwen model.
 
-The `qwen/` directory should look like:
+The `qwenvl/` directory should look like:
 
 ```
 ChatENV
