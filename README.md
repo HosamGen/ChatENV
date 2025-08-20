@@ -231,7 +231,15 @@ These metrics illustrate how well the models performed in describing temporal ch
 ## Citation
 please cite using this BibTeX:
 ```bibtex
-
+@misc{elgendy2025chatenvinteractivevisionlanguagemodel,
+      title={ChatENV: An Interactive Vision-Language Model for Sensor-Guided Environmental Monitoring and Scenario Simulation}, 
+      author={Hosam Elgendy and Ahmed Sharshar and Ahmed Aboeitta and Mohsen Guizani},
+      year={2025},
+      eprint={2508.10635},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2508.10635}, 
+}
 ```
 
 
