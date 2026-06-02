@@ -1,10 +1,10 @@
 # ChatENV: An Interactive Vision-Language Model for Sensor-Guided Environmental Monitoring and Scenario Simulation 🌍
 
 <div align="center">
-
-  [![arXiv](https://img.shields.io/badge/arXiv-2508.10635-red?style=flat&label=arXiv)](https://arxiv.org/abs/2508.10635)&nbsp;&nbsp;
+  
   <a href="https://doi.org/10.1109/TGRS.2026.3685864"><img src="https://img.shields.io/badge/-IEEE-00629B?style=flat&logo=ieee&logoColor=white"/></a>&nbsp;&nbsp;
-
+  [![arXiv](https://img.shields.io/badge/arXiv-2508.10635-red?style=flat&label=arXiv)](https://arxiv.org/abs/2508.10635)&nbsp;&nbsp;
+  
 </div>
 
 This is the code base for the ChatENV project. It includes finetuning the Qwen 2.5 VL model to describe images, and comment on changes between image pairs, in addition to asking hypothetical "what-if" questions regarding weather information and sensor data. Additionally, the repo includes steps to finetune video-based llava models for better temporal analysis, using Video-LLaVA and LLaVA-NeXT-Video.
