@@ -3,6 +3,7 @@
 <div align="center">
 
   [![arXiv](https://img.shields.io/badge/arXiv-2508.10635-red?style=flat&label=arXiv)](https://arxiv.org/abs/2508.10635)&nbsp;&nbsp;
+  <a href="[https://doi.org](https://ieeexplore.ieee.org/abstract/document/11488610)"><img src="https://img.shields.io/badge/-IEEE-00629B?style=flat&logo=ieee&logoColor=white"/></a>&nbsp;&nbsp;
 
 </div>
 
@@ -238,15 +239,16 @@ These metrics illustrate how well the models performed in describing temporal ch
 ## Citation
 please cite using this BibTeX:
 ```bibtex
-@misc{elgendy2025chatenvinteractivevisionlanguagemodel,
-      title={ChatENV: An Interactive Vision-Language Model for Sensor-Guided Environmental Monitoring and Scenario Simulation}, 
-      author={Hosam Elgendy and Ahmed Sharshar and Ahmed Aboeitta and Mohsen Guizani},
-      year={2025},
-      eprint={2508.10635},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2508.10635}, 
-}
+@ARTICLE{11488610,
+  author={Elgendy, Hosam and Sharshar, Ahmed and Aboeitta, Ahmed and Guizani, Mohsen},
+  journal={IEEE Transactions on Geoscience and Remote Sensing}, 
+  title={ChatENV: An Interactive Vision–Language Model for Sensor-Guided Environmental Monitoring and Scenario Simulation}, 
+  year={2026},
+  volume={64},
+  number={},
+  pages={4703710-4703710},
+  keywords={Satellite images;Earth Observing System;Landsat;Sentinel-2;Feeds;Filtering;Filters;Circuits and systems;LoRa;Videos;Environmental monitoring;remote sensing;scenario prediction;vision–language models},
+  doi={10.1109/TGRS.2026.3685864}}
 ```
 
 
