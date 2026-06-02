@@ -3,7 +3,7 @@
 <div align="center">
 
   [![arXiv](https://img.shields.io/badge/arXiv-2508.10635-red?style=flat&label=arXiv)](https://arxiv.org/abs/2508.10635)&nbsp;&nbsp;
-  <a href="[https://doi.org](https://ieeexplore.ieee.org/abstract/document/11488610)"><img src="https://img.shields.io/badge/-IEEE-00629B?style=flat&logo=ieee&logoColor=white"/></a>&nbsp;&nbsp;
+  <a href="https://doi.org/10.1109/TGRS.2026.3685864"><img src="https://img.shields.io/badge/-IEEE-00629B?style=flat&logo=ieee&logoColor=white"/></a>&nbsp;&nbsp;
 
 </div>
 
