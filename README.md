@@ -7,7 +7,7 @@
   
 </div>
 
-This is the code base for the ChatENV project. It includes finetuning the Qwen 2.5 VL model to describe images, and comment on changes between image pairs, in addition to asking hypothetical "what-if" questions regarding weather information and sensor data. Additionally, the repo includes steps to finetune video-based llava models for better temporal analysis, using Video-LLaVA and LLaVA-NeXT-Video.
+**ChatENV** is an IEEE TGRS 2026 paper, codebase, and dataset resource for **weather-aware temporal remote-sensing vision-language modeling**. Built on fMoW imagery, ChatENV supports temporal image-pair understanding, environmental monitoring, image captioning, change description, and sensor-guided “what-if” scenario reasoning. The released resources include cleaned annotations, generated captions/QA, weather- and emissions-related metadata sheets, model fine-tuning code for Qwen2.5-VL, and video-based baselines using Video-LLaVA and LLaVA-NeXT-Video. 
 
 #### [Hosam Elgendy](https://scholar.google.com/citations?user=6RA4_m8AAAAJ&hl=en&oi=ao), [Ahmed Sharshar](https://scholar.google.com/citations?user=GC8A9k0AAAAJ&hl=en), [Ahmed Aboeitta](https://scholar.google.com/citations?user=sEZTgaYAAAAJ&hl=en&oi=ao) and [Mohsen Guizani](https://scholar.google.com/citations?user=RigrYkcAAAAJ&hl=en&oi=ao)
 #### Mohamed bin Zayed University of Artificial Intelligence (MBZUAI)
@@ -19,6 +19,18 @@ This is the code base for the ChatENV project. It includes finetuning the Qwen 2
 </p>
 
 ---
+
+## What is included?
+
+ChatENV provides resources for researchers working on:
+
+- **Temporal remote-sensing image understanding**
+- **fMoW-based image-pair analysis**
+- **Weather-aware and sensor-guided vision-language models**
+- **Environmental monitoring with emissions / air-quality context**
+- **Remote-sensing image captioning and change description**
+- **What-if scenario simulation using visual and environmental metadata**
+
 
 ## Contents
 - [Environment Setup](#environment-setup)
